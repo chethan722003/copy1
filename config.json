@@ -1,0 +1,24 @@
+{
+    "company_websites": {
+        "jobs": "https://ahanait.com/career/",
+        "info": "https://ahanait.com/",
+        "hrms": "https://hr.hwtpl.com/Ahana/login.aspx?ReturnUrl=%2fAhana%2f",
+        "myahana": "https://myahana.ahanait.com/",
+        "timesheet": "https://hr.hwtpl.com/Ahana/hrms/pages/ListTimesheetCreationP.aspx",
+        "checklist": "https://myahana1.ahanait.com:5002/login",
+        "support": "https://support.ahanait.com/ahana/WorkOrder.do?woMode=viewWO&woID=144881&PORTALID=1",
+        "chatgpt": "https://chatgpt.com/"
+    },
+    "responses": {
+        "hi": "Hello ! Welcome to Ahana Chatbot. How can I assist you?",
+        "hello": "Hello ! Welcome to Ahana Chatbot. How can I assist you?",
+        "hey": "Hi ! How can I help you today?",
+        "how are you": "I'm just a bot, but I'm doing great! How about you, ?",
+        "bye": "Goodbye ! Have a great day!",
+        "good morning": "Good morning , how can I assist you?",
+        "good afternoon": "Good afternoon , what can I do for you?",
+        "good evening": "Good evening , let me know how I can help!",
+        "thanks": "You're welcome, ! Let me know if you need more help.",
+        "exit": "Thank you for choosing Ahana Chatbot. Hope we meet again!"
+    }
+}

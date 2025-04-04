@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Video Capture & Processing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 600px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        video {
+            width: 100%;
+            max-width: 500px;
+            border-radius: 8px;
+            background: black;
+        }
+        canvas {
+            display: none;
+        }
+        .button-group {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #response {
+            margin-top: 20px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            text-align: left;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            width: 100%;
+            min-height: 100px;
+            position: relative;
+        }
+        #textInput {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .speak-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Live Video Capture & Analysis</h2>
+        <video id="video" autoplay playsinline></video>
+        <canvas id="canvas"></canvas>
+        <input type="text" id="textInput" placeholder="Enter your question...">
+        <div class="button-group">
+          <!-- <button onclick="startVoiceInput()">🎤 Voice Input</button> -->
+            <button onclick="captureFrame()">📷 Capture & Analyze</button>
+        </div>
+        <div id="response"></div>
+    </div>
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const textInput = document.getElementById('textInput');
+        const responseDiv = document.getElementById('response');
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(error => {
+                responseDiv.innerHTML = "<p style='color:red;'>Error accessing camera.</p>";
+            });
+
+        function captureFrame() {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const imageData = canvas.toDataURL('image/jpeg');
+            const userText = textInput.value || "Analyze this frame";
+            
+            fetch('/process_image_and_text', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: imageData, text: userText })
+            })
+            .then(response => response.json())
+            .then(data => {
+                responseDiv.innerHTML = `<p><strong>Response:</strong></p><pre style="white-space: pre-wrap; word-wrap: break-word;">${data.response || data.error}</pre>`;
+                addSpeechButton();
+            })
+            .catch(error => {
+                responseDiv.innerHTML = `<p style='color:red;'>Error processing request.</p>`;
+            });
+        }
+
+        function startVoiceInput() {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'en-US';
+            recognition.start();
+
+            recognition.onresult = function(event) {
+                textInput.value = event.results[0][0].transcript;
+            };
+
+            recognition.onerror = function() {
+                responseDiv.innerHTML = "<p style='color:red;'>Voice recognition error.</p>";
+            };
+        }
+
+        function addSpeechButton() {
+            if (!document.querySelector('.speak-btn')) {
+                const button = document.createElement('button');
+                button.innerHTML = '🔊';
+                button.classList.add('speak-btn');
+                button.onclick = speakResponse;
+                responseDiv.appendChild(button);
+            }
+        }
+
+        function speakResponse() {
+            const responseText = responseDiv.textContent;
+            const speech = new SpeechSynthesisUtterance(responseText);
+            speech.lang = 'en-US';
+            window.speechSynthesis.speak(speech);
+        }
+    </script>
+</body>
+</html>

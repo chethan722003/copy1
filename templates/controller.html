@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Device Controller</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      text-align: center; 
+      padding: 20px; 
+      margin: 0; 
+      background-color: #000000; /* dark background */
+      color: #f5f5f5;
+    }
+    .container { 
+      max-width: 800px; 
+      margin: 0 auto; 
+      padding: 5px; 
+      background-color: #000000; /* dark gray container */
+      border-radius: 30px; 
+      box-shadow: 0 2px 5px rgba(255,255,255,0.1); 
+    }
+    h1 { 
+      font-size: 24px; 
+      margin: 10px 0; 
+      color: #f5f5f5;
+    }
+    @media (max-width:600px){ 
+      h1 { font-size:20px; } 
+    }
+    #screenshot { 
+      max-width:100%; 
+      margin:10px auto; 
+      border:1px solid #555; 
+      border-radius:10px; 
+      box-shadow:0 2px 4px rgba(0,0,0,0.5); 
+    }
+    .button-container { 
+      display: flex; 
+      justify-content: center; 
+      gap: 10px; 
+      flex-wrap: wrap; 
+      margin: 10px 0; 
+    }
+    .button { 
+      padding: 12px 24px; 
+      font-size: 16px; 
+      cursor: pointer; 
+      border: none; 
+      border-radius: 20px; 
+      transition: all 0.3s ease; 
+      min-width: 120px; 
+      color: #ffffff;
+    }
+    #start { 
+      background-color: #002fff; /* teal */
+    }
+    #stop { 
+      background-color: #ff1c03; /* red-ish */
+    }
+    #start:hover, #start:active { 
+      background-color: #aebdff; 
+      color: #000000;
+    }
+    #stop:hover, #stop:active { 
+      background-color: #ffc1ba; 
+      color: #000000;
+    }
+    #status, #processing-status { 
+      margin: 10px 0; 
+      padding: 10px; 
+      border-radius: 10px; 
+      background-color: #444444; 
+      box-shadow: 0 1px 3px rgba(0,0,0,0.5); 
+      color: #f5f5f5;
+    }
+    #status { 
+      font-weight: bold; 
+      color: #00ced1; /* dark turquoise */
+    }
+    #processing-status { 
+      color: #cccccc; 
+      font-style: italic; 
+    }
+    .device-type { 
+      margin: 10px 0; 
+      padding: 10px; 
+      background-color: #333333; 
+      border-radius: 10px; 
+      font-size: 14px; 
+      color: #ffffff;
+    }
+    .instructions { 
+      margin: 15px 0; 
+      padding: 15px; 
+      background-color: #333333; 
+      border-radius: 10px; 
+      text-align: left; 
+      font-size: 14px; 
+      color: #ffffff;
+    }
+    .instructions h3 { 
+      margin-top: 0; 
+      color: #ffffff; /* orange-ish */
+    }
+    .instructions ul { 
+      margin: 0; 
+      padding-left: 20px; 
+    }
+    .instructions li { 
+      margin: 5px 0; 
+    }
+    #chatContainer { 
+      margin-top: 15px; 
+      text-align: left; 
+      max-height: 300px; 
+      overflow-y: auto; 
+      padding: 10px; 
+      border-radius: 10px; 
+      background-color: #333333; 
+      color: #ffffff;
+    }
+    .chat-message { 
+      margin: 5px 0; 
+      padding: 8px 12px; 
+      border-radius: 12px; 
+      max-width: 70%; 
+    }
+    .user-message { 
+      background-color: #ffffff; /* dark green teal */
+      align-self: flex-start; 
+      color: #000000;
+    }
+    .ai-message { 
+      background-color: #ffffff; /* orange */
+      align-self: flex-end; 
+      text-align: right; 
+      color: #000000;
+    }
+    #chatContainer .message-wrapper { 
+      display: flex; 
+      flex-direction: column; 
+    }
+    /* Position video off-screen while keeping the stream active */
+    #video { 
+      position: absolute; 
+      top: -9999px; 
+      left: -9999px; 
+      width: 1px; 
+      height: 1px; 
+    }
+    img { 
+      height: 60px; 
+      width: auto; 
+    }
+    #mobile-help { 
+      margin: 10px 0; 
+      padding: 15px; 
+      background-color: #333333; /* purple */
+      border-radius: 10px; 
+      display: none; 
+      color: #ffffff;
+    }
+    #mobile-help h3 { 
+      margin-top: 0; 
+      color: #ecf0f1; 
+    }
+    .compatibility-notice { 
+      font-weight: bold; 
+      color: #ffffff; 
+      margin: 5px 0; 
+    }
+    #audioFallbackBtn { 
+      display: none; 
+      margin: 10px auto; 
+      padding: 8px 16px; 
+      background-color: #ffffff; 
+      border: none; 
+      border-radius: 5px; 
+      cursor: pointer; 
+      color: #000000;
+    }
+  </style>
+  
+</head>
+<body>
+  <div class="container">
+    <h1>User Device Controller</h1>
+    <img src="https://i.ibb.co/1MFLPQh/UX-removebg-preview.png" alt="UX" /><br /><br />
+    <div class="device-type" id="deviceType">Detecting device type...</div>
+    <div class="instructions">
+      <h3>Instructions:</h3>
+      <ul id="deviceInstructions"></ul>
+    </div>
+    <div id="mobile-help">
+      <h3>Mobile Screen Sharing Help</h3>
+      <div id="mobile-help-content"></div>
+      <button id="audioFallbackBtn">Use Audio Only Mode</button>
+    </div>
+    <div class="button-container">
+      <button id="start" class="button">Start Screen Sharing</button>
+      <button id="stop" class="button">Stop Sharing</button>
+    </div>
+    <div id="status">Status: Not sharing</div>
+    <div id="processing-status">Ready to start</div>
+    <div id="chatContainer"></div>
+    <!-- Video element is positioned off-screen -->
+    <video id="video" playsinline></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <img id="screenshot" alt="Screen share" aria-live="polite" />
+  </div>
+
+  <script>
+    let isSharing = false;
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const screenshot = document.getElementById('screenshot');
+    const startBtn = document.getElementById('start');
+    const stopBtn = document.getElementById('stop');
+    const statusDiv = document.getElementById('status');
+    const processingStatus = document.getElementById('processing-status');
+    const deviceTypeDiv = document.getElementById('deviceType');
+    const deviceInstructions = document.getElementById('deviceInstructions');
+    const chatContainer = document.getElementById('chatContainer');
+    const mobileHelp = document.getElementById('mobile-help');
+    const mobileHelpContent = document.getElementById('mobile-help-content');
+    const audioFallbackBtn = document.getElementById('audioFallbackBtn');
+
+    // Browser and device detection
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    const isSamsung = /SamsungBrowser/i.test(navigator.userAgent);
+    const isChrome = /Chrome/i.test(navigator.userAgent) && !/Edge|Edg/i.test(navigator.userAgent);
+    const isSafari = /Safari/i.test(navigator.userAgent) && !/Chrome/i.test(navigator.userAgent);
+    const isFirefox = /Firefox/i.test(navigator.userAgent);
+    const hasScreenCaptureAPI = navigator.mediaDevices && ('getDisplayMedia' in navigator.mediaDevices);
+
+    function detectDevice() {
+      let deviceType = 'Desktop Computer';
+      let browserType = '';
+      if (isMobile) {
+        deviceType = isIOS ? 'iOS Device' : 'Android Device';
+        if (isChrome) browserType = ' with Chrome';
+        else if (isSafari) browserType = ' with Safari';
+        else if (isFirefox) browserType = ' with Firefox';
+        else if (isSamsung) browserType = ' with Samsung Browser';
+      }
+      deviceTypeDiv.textContent = `Detected Device: ${deviceType}${browserType}`;
+      deviceTypeDiv.textContent += hasScreenCaptureAPI ? " (Screen Sharing Supported)" : " (Limited Screen Sharing Support)";
+      updateInstructions();
+    }
+
+    function updateInstructions() {
+      deviceInstructions.innerHTML = '';
+      let instructions = [];
+      if (isMobile) {
+        if (isIOS) {
+          instructions = [
+            'iOS 15+ supports screen sharing in Safari browser',
+            'Tap "Start Screen Sharing" to begin',
+            'Select "Screen" when prompted',
+            'Choose which screen content to share',
+            'Add this site to your Home Screen for best results',
+            'Speak your question once sharing has started'
+          ];
+          if (!hasScreenCaptureAPI) {
+            deviceInstructions.innerHTML = '<li class="compatibility-notice">Your iOS version may not support screen sharing. Please update iOS or use a different device.</li>';
+            return;
+          }
+        } else if (isAndroid) {
+          instructions = [
+            'Tap "Start Screen Sharing" to begin',
+            'Select "Screen", "Window", or "Tab" when prompted',
+            'Grant permission to capture your screen',
+            'Android 10+ with Chrome works best for screen sharing',
+            'Speak your question once sharing has started'
+          ];
+          if (!hasScreenCaptureAPI) {
+            deviceInstructions.innerHTML = '<li class="compatibility-notice">Your Android version or browser may have limited screen sharing support. Try using the latest Chrome browser.</li>';
+            return;
+          }
+        }
+      } else {
+        instructions = [
+          'Click "Start Screen Sharing" to begin',
+          'Select which window or tab you want to share',
+          'Speak your question after sharing has started'
+        ];
+      }
+      instructions.forEach(instr => {
+        const li = document.createElement('li');
+        li.textContent = instr;
+        deviceInstructions.appendChild(li);
+      });
+    }
+
+    function appendMessage(text, type) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'message-wrapper';
+      const msg = document.createElement('div');
+      msg.className = 'chat-message ' + (type === 'user' ? 'user-message' : 'ai-message');
+      msg.textContent = text;
+      wrapper.appendChild(msg);
+      chatContainer.appendChild(wrapper);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function showMobileHelp(message) {
+      mobileHelp.style.display = 'block';
+      mobileHelpContent.innerHTML = message;
+      audioFallbackBtn.style.display = 'block';
+    }
+
+    function hideMobileHelp() {
+      mobileHelp.style.display = 'none';
+      audioFallbackBtn.style.display = 'none';
+    }
+
+    async function startAudioOnlyMode() {
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error("Audio capture not supported on this device");
+        }
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        video.srcObject = stream;
+        isSharing = true;
+        statusDiv.textContent = 'Status: Audio-only mode active';
+        processingStatus.textContent = 'Listening for voice input...';
+        screenshot.src = "https://i.ibb.co/sQvx56C/UX-1.png";
+        screenshot.alt = "Audio-only mode active";
+        if (recognition) recognition.start();
+        stream.getAudioTracks()[0].addEventListener('ended', () => stopSharing());
+        hideMobileHelp();
+      } catch (err) {
+        console.error("Audio capture error:", err);
+        processingStatus.textContent = `Audio error: ${err.message}. Please try again or use a different device.`;
+      }
+    }
+
+    function applyCompatibilityFixes() {
+      if (isIOS && !hasScreenCaptureAPI) {
+        const iosVersionMatch = navigator.userAgent.match(/OS (\d+)_/);
+        const majorVersion = iosVersionMatch ? parseInt(iosVersionMatch[1], 10) : 0;
+        if (majorVersion < 15) {
+          showMobileHelp(`
+            <p>Your iOS version (${majorVersion}) has limited screen sharing support.</p>
+            <p>Tips:</p>
+            <ul>
+              <li>Update to iOS 15 or newer if possible</li>
+              <li>Try using Safari browser</li>
+              <li>Add this site to your Home Screen</li>
+              <li>Or use audio-only mode as an alternative</li>
+            </ul>
+          `);
+        }
+      }
+      if (isAndroid && !hasScreenCaptureAPI) {
+        showMobileHelp(`
+          <p>Your Android device has limited screen sharing support.</p>
+          <p>Tips:</p>
+          <ul>
+            <li>Use the latest Chrome browser</li>
+            <li>Ensure your Android version is 10 or newer</li>
+            <li>Grant all requested permissions</li>
+            <li>Or use audio-only mode as an alternative</li>
+          </ul>
+        `);
+      }
+    }
+
+    async function attemptScreenSharing() {
+      try {
+        if (!navigator.mediaDevices) {
+          throw new Error("Media devices API not available");
+        }
+        if (!navigator.mediaDevices.getDisplayMedia) {
+          if (isIOS && navigator.mediaDevices.getUserMedia) {
+            const constraints = {
+              video: {
+                mediaSource: 'screen',
+                width: { ideal: 1280, max: 1920 },
+                height: { ideal: 720, max: 1080 },
+                frameRate: { ideal: 15, max: 30 }
+              }
+            };
+            try {
+              const stream = await navigator.mediaDevices.getUserMedia(constraints);
+              return stream;
+            } catch (err) {
+              console.error("iOS specific method failed:", err);
+              throw new Error("Screen sharing not supported on this iOS device");
+            }
+          } else if (isAndroid) {
+            throw new Error("Screen sharing is not supported on this Android device/browser");
+          }
+          throw new Error("Screen sharing is not supported on this device/browser");
+        }
+        let constraints = { 
+          video: { 
+            width: { ideal: 1280, max: 1920 },
+            height: { ideal: 720, max: 1080 },
+            frameRate: { ideal: 15, max: 30 }
+          }
+        };
+        if (isIOS) {
+          constraints.video.displaySurface = 'browser';
+        } else if (isAndroid && isChrome) {
+          constraints.video.displaySurface = 'window';
+        } else {
+          constraints.video.cursor = 'never';
+          constraints.video.displaySurface = 'application';
+        }
+        const stream = await navigator.mediaDevices.getDisplayMedia(constraints);
+        return stream;
+      } catch (err) {
+        console.error("Screen sharing error:", err);
+        throw err;
+      }
+    }
+
+    async function startSharing() {
+      try {
+        processingStatus.textContent = 'Requesting screen sharing permission...';
+        hideMobileHelp();
+        const stream = await attemptScreenSharing();
+        video.srcObject = stream;
+        video.playsInline = true;
+        video.muted = true;
+        video.onloadedmetadata = () => {
+          video.play().then(() => {
+            isSharing = true;
+            statusDiv.textContent = 'Status: Screen sharing active';
+            processingStatus.textContent = 'Screen sharing started. Listening...';
+            if (recognition) recognition.start();
+            setTimeout(() => {
+              if (video.videoWidth && video.videoHeight) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0);
+                screenshot.src = canvas.toDataURL('image/png');
+              }
+            }, 500);
+            stream.getVideoTracks().forEach(track => {
+              track.addEventListener('ended', () => {
+                console.log("Screen share track ended");
+                stopSharing();
+              });
+            });
+          }).catch(err => {
+            console.error("Video play error:", err);
+            processingStatus.textContent = `Error starting video: ${err.message}`;
+          });
+        };
+      } catch (err) {
+        console.error("Screen sharing error:", err);
+        processingStatus.textContent = `Screen sharing error: ${err.message}`;
+        if (err.name === 'NotAllowedError') {
+          showMobileHelp(`
+            <p>Permission to share your screen was denied.</p>
+            <p>To fix this:</p>
+            <ul>
+              <li>Grant screen recording permission when prompted</li>
+              <li>On iOS, enable screen recording in Control Center</li>
+              <li>On Android, check app permissions in your device settings</li>
+            </ul>
+          `);
+        } else if (err.name === 'NotFoundError' || err.name === 'NotSupportedError') {
+          showMobileHelp(`
+            <p>Screen sharing is not supported on your device or browser.</p>
+            <p>Alternatives:</p>
+            <ul>
+              <li>Try a different browser (Chrome for Android, Safari for iOS)</li>
+              <li>Update your browser/device OS</li>
+              <li>Use audio-only mode as an alternative</li>
+            </ul>
+          `);
+        } else {
+          showMobileHelp(`
+            <p>Screen sharing failed: ${err.message}</p>
+            <p>Solutions:</p>
+            <ul>
+              <li>Reload the page and try again</li>
+              <li>Check if your device supports screen sharing</li>
+              <li>Try a different browser</li>
+            </ul>
+          `);
+        }
+      }
+    }
+
+    function stopSharing() {
+      if (video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+      }
+      isSharing = false;
+      statusDiv.textContent = 'Status: Not sharing';
+      processingStatus.textContent = 'Sharing stopped';
+      if (recognition && recognition.started) {
+        recognition.stop();
+      }
+      hideMobileHelp();
+    }
+
+    // Initialize and configure Speech Recognition
+    let recognition;
+    let recognitionTimeout;
+    function initSpeechRecognition() {
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+        recognition.started = false;
+        recognition.lastResult = false;
+
+        recognition.onstart = () => {
+          console.log('Voice recognition started');
+          processingStatus.textContent = 'Listening...';
+          recognition.started = true;
+          clearTimeout(recognitionTimeout);
+          recognitionTimeout = setTimeout(() => {
+            if (!recognition.lastResult) {
+              processingStatus.textContent = 'Voice detection may not be working. Please check your microphone permissions.';
+            }
+          }, 5000);
+        };
+
+        recognition.onend = () => {
+          console.log('Voice recognition ended');
+          recognition.started = false;
+          clearTimeout(recognitionTimeout);
+          // Restart recognition automatically if still sharing
+          if (isSharing) {
+            setTimeout(() => { 
+              console.log('Restarting voice recognition...');
+              recognition.start();
+            }, 500);
+          }
+        };
+
+        recognition.onerror = (e) => {
+          console.error('Voice recognition error:', e.error);
+          if (e.error === 'not-allowed' || e.error === 'permission-denied') {
+            processingStatus.textContent = 'Microphone access denied. Please check your settings.';
+          } else if (e.error === 'network') {
+            processingStatus.textContent = 'Network error. Please check your connection.';
+          } else {
+            processingStatus.textContent = `Voice recognition error: ${e.error}`;
+          }
+        };
+
+        recognition.onresult = async (event) => {
+          console.log('Voice recognition result event:', event);
+          const lastResult = event.results[event.results.length - 1];
+          recognition.lastResult = true;
+          if (lastResult.isFinal) {
+            const finalTranscript = lastResult[0].transcript.trim();
+            appendMessage("You: " + finalTranscript, "user");
+            let imageData = null;
+            if (isSharing && video.videoWidth && video.videoHeight) {
+              canvas.width = video.videoWidth;
+              canvas.height = video.videoHeight;
+              canvas.getContext('2d').drawImage(video, 0, 0);
+              imageData = canvas.toDataURL('image/png').split(',')[1];
+            }
+            processingStatus.textContent = "Getting response...";
+            try {
+              const response = await fetch('/submit_input', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ voice_text: finalTranscript, screenshot: imageData })
+              });
+              const data = await response.json();
+              processingStatus.textContent = data.response || data.message;
+              if (data.response) {
+                appendMessage("UX: " + data.response, "ai");
+                if ('speechSynthesis' in window) {
+                  const utterance = new SpeechSynthesisUtterance(data.response);
+                  window.speechSynthesis.speak(utterance);
+                }
+              }
+            } catch (err) {
+              console.error("API error:", err);
+              processingStatus.textContent = "Error getting response. Please try again.";
+            }
+            // After processing the final result, restart recognition
+            if (isSharing) {
+              recognition.stop();
+              setTimeout(() => { 
+                console.log('Restarting voice recognition after processing result...');
+                recognition.start();
+              }, 500);
+            }
+          } else {
+            processingStatus.textContent = "Listening: " + lastResult[0].transcript;
+          }
+        };
+      } else {
+        console.log('Speech API not supported.');
+        processingStatus.textContent = "Voice recognition not supported on this device.";
+      }
+    }
+
+    // Initialize components and set up event listeners
+    detectDevice();
+    initSpeechRecognition();
+    applyCompatibilityFixes();
+
+    startBtn.onclick = startSharing;
+    stopBtn.onclick = stopSharing;
+    audioFallbackBtn.onclick = startAudioOnlyMode;
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && isSharing) {
+        console.log('Backgrounded, maintaining connection...');
+      }
+    });
+  </script>
+</body>
+</html>

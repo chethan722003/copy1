@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="ahanalogo.png" />
+    <title>Ahana Chatbot</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <canvas id="canvasRef" style="display: none;"></canvas>
+    
+</head>
+
+<body>
+    <h1>Welcome to Ahana Chatbot</h1>
+
+    <!-- Chatbot Toggle Button (Floating Circle) -->
+    <div id="chatbot-toggle" class="chatbot-toggle" onclick="toggleChatbot()">
+        <img src="{{ url_for('static', filename='boticon.jpg') }}" alt="Chat" class="chatbot-icon">
+    </div>
+
+    <!-- Chatbot Window -->
+    <div class="chatbot-container" id="chatbot" draggable="true">
+        <div class="chatbot-header" id="chatbot-header">
+            <a href="https://ahanait.com" target="_blank">
+                <img src="{{ url_for('static', filename='ahanalogo.png') }}" alt="Logo" class="ahana-logo">
+            </a>
+            
+            <span>Ahana Chatbot</span>
+            
+            <div class="header-left">
+                <button class="btn btn-light btn-sm" onclick="toggleDarkMode()">🌙</button>
+            </div>
+
+            <div class="header-right">
+                <button class="btn btn-light btn-sm" onclick="openLogin()">👤</button>
+                <button class="btn btn-light btn-sm close-btn" onclick="toggleChatbot()">✖</button>
+            </div>
+        </div>
+        <!-- Dropdown Button for Website Links -->
+        <div class="dropdown">
+            <div class="dropdown-topbutton">
+                <button class="dropdown-btn" onclick="toggleDropdown()" id="dropdown-btn">▼</button>
+            </div>
+            <div class="button-container" id="dropdown-menu" style="display: none;">
+                <button class="btn-link" onclick="window.open('https://ahanait.com/career/', '_blank')">Jobs</button>
+                <button class="btn-link" onclick="window.open('https://ahanait.com/', '_blank')">Info</button>
+                <button class="btn-link" onclick="window.open('https://hr.hwtpl.com/Ahana/login.aspx?ReturnUrl=%2fAhana%2f', '_blank')">HRMS</button>
+                <button class="btn-link" onclick="window.open('https://myahana.ahanait.com/', '_blank')">MyAhana</button>
+                <button class="btn-link" onclick="window.open('https://hr.hwtpl.com/Ahana/hrms/pages/ListTimesheetCreationP.aspx', '_blank')">Timesheet</button>
+                <button class="btn-link" onclick="window.open('https://myahana1.ahanait.com:5002/login', '_blank')">Checklist</button>
+                <button class="btn-link" onclick="window.open('https://support.ahanait.com/ahana/WorkOrder.do?woMode=viewWO&woID=144881&PORTALID=1', '_blank')">Support</button>
+                <button class="btn-link" onclick="window.open('https://chatgpt.com/', '_blank')">ChatGPT</button>
+            </div>
+        </div>
+
+        <script>
+            function toggleDropdown() {
+                var menu = document.getElementById("dropdown-menu");
+                menu.style.display = menu.style.display === "none" ? "block" : "none";
+            }
+
+            // Stop blinking after 10 seconds
+            setTimeout(() => {
+                document.getElementById("dropdown-btn").style.animation = "none";
+            }, 10000);
+        </script>
+
+        <div id="chat-window" class="chatbot-messages"></div>
+
+        
+        <canvas id="canvasRef" style="display: none;"></canvas>
+        <!-- Expandable Circular Button -->
+        <div class="circular-menu">
+            <div id="main-btn" class="menu-btn" onclick="toggleFeatureButtons()">⚙️</div>
+            <div id="feature-buttons" class="hidden">
+                <div class="menu-btn feature-btn" id="notepad-btn" onclick="toggleNotepad()">📝</div>
+             <!--  <div class="menu-btn feature-btn"><a href="/vision">📷</a></div>   -->          
+                <!-- You can add more feature buttons here -->
+            </div>
+        </div>
+
+        <!-- Notepad -->
+        <div id="notepadContainer" class="hidden">
+            <button id="cancelNote">✖</button>
+            <textarea id="notepad" placeholder="Write your notes here..."></textarea>
+            <div class="buttons">
+                <button id="saveNote">Save</button>
+                <button id="deleteNote">Clear</button>
+                <button id="downloadNote">Download</button>
+            </div>
+        </div>
+        <!-- Chat Input Section -->
+        <div class="chatbot-input">
+            <input type="file" id="file-upload" style="display: none;" onchange="handleFileSelect()">
+            <button class="upload-btn" onclick="document.getElementById('file-upload').click()">📁</button>
+
+            <div  id="file-info" style="display: none;">
+                <p id="selected-file-name"></p>
+                <button id="cancel-button" style="margin-top: 10px; padding: 5px 10px; background-color: rgb(202, 196, 196); color: rgb(169, 27, 27); border: none; cursor: pointer;">✖</button>
+            </div>         
+            
+
+            <input type="text" id="chat-input" class="form-control" placeholder="Type your message..." onkeydown="handleEnter(event)">
+            <button class="voice-btn btn btn-success" onclick="startSpeechRecognition()">🎙️</button>
+            <button class="send-btn btn btn-primary" onclick="sendMessage()">➤</button>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>
